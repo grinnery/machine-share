@@ -7,8 +7,10 @@ var path = require('path')
 var fse = require('fs.extra')
 var zip = require('node-zip')
 var util = require('./util')
+var os = require('os');
 
 var args = process.argv.slice(2)
+
 var machine = args[0]
 if (!machine) {
     console.log('machine-import <config-zip>')
@@ -16,25 +18,29 @@ if (!machine) {
 }
 
 var machine = machine.substring(0, machine.length - 4)
-var configDir = process.env.HOME + '/.docker/machine/machines/' + machine
+
+var dm = new util.dm(machine);
+
+console.dir(dm);
+
 try {
-    fs.statSync(configDir)
+    fs.statSync(dm.configDir)
     console.log('that machine already exists')
     process.exit(1)
 } catch (e) {
     //ok
 }
 
-var tmp = '/tmp/' + machine + '/'
-fse.rmrfSync(tmp)
+fse.rmrfSync(dm.tmpDir)
 
 unzip()
+
 processConfig()
 
-util.copyDir(tmp, configDir)
-util.copyDir(tmp + 'certs', process.env.HOME + '/.docker/machine/certs/' + machine)
+util.copyDir(dm.tmpDir, dm.configDir)
+// certs are extracted to a machine-specific location
+util.copyDir( dm.tmpCerts, path.join(dm.certDir, machine) )
 fse.rmrfSync(tmp)
-
 
 function unzip() {
     var zip = new require('node-zip')()
@@ -42,17 +48,18 @@ function unzip() {
     for (var f in zip.files) {
         var file = zip.files[f]
         if (!file.dir) {
-            util.mkdir(path.dirname(tmp + file.name))
-            fs.writeFileSync(tmp + file.name, file.asNodeBuffer())
+            var outPath = path.join(dm.tmpDir, file.name);
+            util.mkdir(path.dirname(outPath));
+            fs.writeFileSync(outPath, file.asNodeBuffer());
         }
     }
 }
 
 function processConfig() {
-    var home = process.env['HOME']
-    var configName = tmp + 'config.json';
-    var configFile = fs.readFileSync(configName)
-    var config = JSON.parse(configFile.toString())
+    var home = os.homedir();
+
+    var configFile = fs.readFileSync(dm.tmpConfigFile);
+    var config = JSON.parse(configFile.toString());
 
     util.recurseJson(config, function (parent, key, value) {
         if (typeof value === 'string') {
@@ -66,7 +73,7 @@ function processConfig() {
         var driver = JSON.parse(decoded)
 
         // update store path
-        driver.StorePath = process.env.HOME + '/.docker/machine'
+        driver.StorePath = dm.dock;
 
         var updatedBlob = new Buffer(JSON.stringify(driver)).toString('base64')
 
@@ -74,6 +81,5 @@ function processConfig() {
         config.RawDriver = updatedBlob
     }
 
-
-    fs.writeFileSync(configName, JSON.stringify(config))
+    fs.writeFileSync(dm.configFile, JSON.stringify(config))
 }
