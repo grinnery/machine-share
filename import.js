@@ -9,14 +9,14 @@ var os = require('os');
 
 var args = process.argv.slice(2);
 
-var machine = args[0];
+var zipfile = args[0];
 
-if (!machine) {
+if (!zipfile) {
     console.log('machine-import <machine.zip>');
     process.exit(1);
 }
 
-var machine = machine.substring(0, machine.length - 4);
+var machine = path.basename(zipfile, '.zip');
 
 var dm = new util.dm(machine);
 
@@ -39,7 +39,7 @@ fse.removeSync(dm.tmpDir);
 
 function unzip() {
     var zip = new require('node-zip')();
-    zip.load(fs.readFileSync(machine + '.zip'));
+    zip.load(fs.readFileSync(zipfile));
     for (var f in zip.files) {
         var file = zip.files[f];
         if (!file.dir) {
@@ -54,7 +54,7 @@ function fromPortableConfig(key, value) {
     if (typeof value === 'string' && value.includes('{{HOME}}')) {
         value = value.replace('{{HOME}}', dm.home);
         if( path.sep == '\\') {
-            value = value.replace('/', path.sep);
+            value = value.replace(/\//g, path.sep);
         }
     }
     return value;

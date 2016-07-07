@@ -58,7 +58,7 @@ function toPortableConfig(key, value) {
         value = value.replace(dm.home, '{{HOME}}');
 
         if( path.sep == '\\') {
-            value = value.replace(path.sep, '/');
+            value = value.replace(/\\/g, '/');
         }
 
         if(value != orig_value) {
