@@ -7,20 +7,23 @@ functionality in docker machine (see issue
 ## installation 
 
 ```
-npm install -g machine-share
+cd machine-share
+npm install -g
 ```
 
 ## exporting machines
 
 ```
 machine-export <machine-name>
->> exported to <machine-name>.tar 
+>> exported to <machine-name>.tar.gz 
 ```
 
 ## importing machines
 
+Machine `<machine-name>` should not exist, or you'll have to delete it before import.
+
 ```
-machine-import <machine-name>.tar
+machine-import <machine-name>.tar.gz
 >> imported
 ```
 
