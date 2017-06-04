@@ -18,6 +18,8 @@ if (!machine) {
 
 var dm = new util.dm(machine);
 
+console.dir(dm);
+
 fse.emptyDirSync(dm.tmpDir);
 fse.mkdirsSync( dm.tmpCerts );
 fse.mkdirsSync( dm.tmpExt );

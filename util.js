@@ -40,7 +40,9 @@ module.exports.dm = function(_name) {
     }
 
     var nname = path.normalize(_name);
-    if( nname.length < 1 || nname.match(/\W/) != null ) {
+    if( nname.length < 1 
+//        || nname.match(/\W/) != null 
+      ) {
         throw new Error( 'bad machine name "' + _name + '"');
     }
     
